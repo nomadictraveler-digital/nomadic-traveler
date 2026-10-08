@@ -1,0 +1,13 @@
+node_modules/
+.next/
+vendor/
+.env
+.env.*
+!.env.example
+storage/*.key
+storage/logs/*
+bootstrap/cache/*
+coverage/
+.DS_Store
+.idea/
+.vscode/
