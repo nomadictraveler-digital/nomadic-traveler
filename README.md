@@ -4,16 +4,19 @@ Global travel community and travel-tracking platform for Bangladesh districts an
 
 ## Current MVP
 
-The repository currently includes a working Next.js travel-tracker frontend with:
+The frontend now includes a multi-section interactive travel platform experience:
 
-- Bangladesh 64-district tracker
-- 195-country tracker (193 UN Member States + Holy See + State of Palestine)
-- Search and visited-place selection
-- Travel progress statistics
-- Responsive mobile/desktop UI
-- CI build + TypeScript check
+- Bangladesh 64-district and 195-country travel tracker
+- Search, select-all, clear-all and progress tracking
+- Explore / destination-guide cards
+- Trip Planner with days, destinations and budget
+- Hidden Gems submission workflow and community guidelines
+- Quiz and leaderboard UI
+- Personal travel profile and achievement UI
+- Responsive navigation for desktop and mobile
+- CI TypeScript check and production build
 
-The 195-country convention follows the United Nations description of 193 Member States plus the two non-member observer States, the Holy See and State of Palestine.
+The next backend phase will connect persistent accounts, database-backed travel history, moderation, real GeoJSON layers and server-side exports.
 
 ## Architecture
 
