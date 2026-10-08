@@ -47,3 +47,5 @@ Build: `npm run lint && npm run build`
 ## Repository
 
 Nomadic Traveler is maintained as a community platform project.
+
+<!-- GitHub Pages deployment verification trigger -->
