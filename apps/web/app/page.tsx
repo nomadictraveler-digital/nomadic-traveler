@@ -1,11 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { countries } from './data/countries';
 
 type Tab='home'|'bdmap'|'worldmap'|'guide'|'planner'|'gems'|'quiz'|'profile';
 
 const districts=['ঢাকা','ফরিদপুর','গাজীপুর','গোপালগঞ্জ','কিশোরগঞ্জ','মাদারীপুর','মানিকগঞ্জ','মুন্সিগঞ্জ','নারায়ণগঞ্জ','নরসিংদী','রাজবাড়ী','শরীয়তপুর','টাঙ্গাইল','চট্টগ্রাম','বান্দরবান','ব্রাহ্মণবাড়িয়া','চাঁদপুর','কুমিল্লা','কক্সবাজার','ফেনী','খাগড়াছড়ি','লক্ষ্মীপুর','নোয়াখালী','রাঙ্গামাটি','বরিশাল','বরগুনা','ভোলা','ঝালকাঠি','পটুয়াখালী','পিরোজপুর','খুলনা','বাগেরহাট','চুয়াডাঙ্গা','যশোর','ঝিনাইদহ','কুষ্টিয়া','মাগুরা','মেহেরপুর','নড়াইল','সাতক্ষীরা','ময়মনসিংহ','জামালপুর','নেত্রকোণা','শেরপুর','রাজশাহী','বগুড়া','জয়পুরহাট','নওগাঁ','নাটোর','চাঁপাইনবাবগঞ্জ','পাবনা','সিরাজগঞ্জ','রংপুর','দিনাজপুর','গাইবান্ধা','কুড়িগ্রাম','লালমনিরহাট','নীলফামারী','পঞ্চগড়','ঠাকুরগাঁও','সিলেট','হবিগঞ্জ','মৌলভীবাজার','সুনামগঞ্জ'];
-const countries=['Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan','Bangladesh','Bhutan','Brunei','Cambodia','Canada','China','Croatia','Egypt','Ethiopia','France','Georgia','Germany','Greece','Hong Kong','India','Indonesia','Italy','Japan','Jordan','Kazakhstan','Kenya','Kyrgyzstan','Laos','Malaysia','Maldives','Montenegro','Morocco','Myanmar','Nepal','Netherlands','New Zealand','North Macedonia','Oman','Philippines','Portugal','Qatar','Rwanda','Saudi Arabia','Serbia','Seychelles','Singapore','South Africa','South Korea','Spain','Sri Lanka','Switzerland','Tajikistan','Tanzania','Thailand','Tunisia','Türkiye','Uganda','United Arab Emirates','United Kingdom','United States','Uzbekistan','Vietnam','Zimbabwe'];
+
 
 const places=[
  {title:'আহসান মঞ্জিল',district:'ঢাকা',tag:'ইতিহাস',time:'১–২ ঘণ্টা',cost:'কম',text:'বুড়িগঙ্গার তীরে ঐতিহাসিক গোলাপি প্রাসাদ। পুরান ঢাকার heritage trip-এর জন্য আদর্শ।'},
