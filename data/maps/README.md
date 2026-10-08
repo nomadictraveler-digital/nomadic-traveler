@@ -1,0 +1,1 @@
+Place licensed GeoJSON assets here. Recommended sources: Natural Earth for world boundaries and an appropriately licensed Bangladesh 64-district dataset. Record source/license in `docs/MAP-DATA.md` before committing production assets.
