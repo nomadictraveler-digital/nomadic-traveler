@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { countries } from './data/countries';
 
 type Tab='home'|'bdmap'|'worldmap'|'guide'|'planner'|'gems'|'quiz'|'profile';
@@ -34,6 +34,25 @@ export default function Home(){
  const [notice,setNotice]=useState('');
  const [qi,setQi]=useState(0);
  const [score,setScore]=useState(0);
+ const restored=useRef(false);
+
+ useEffect(()=>{
+  try {
+   const bd=window.localStorage.getItem('nomadic-traveler:visited-districts');
+   const world=window.localStorage.getItem('nomadic-traveler:visited-countries');
+   if(bd){const parsed=JSON.parse(bd);if(Array.isArray(parsed))setSelectedBD(parsed.filter(x=>districts.includes(x)));}
+   if(world){const parsed=JSON.parse(world);if(Array.isArray(parsed))setSelectedWorld(parsed.filter(x=>countries.includes(x)));}
+  } catch { /* Ignore malformed or unavailable local data. */ }
+  restored.current=true;
+ },[]);
+
+ useEffect(()=>{
+  if(!restored.current)return;
+  try {
+   window.localStorage.setItem('nomadic-traveler:visited-districts',JSON.stringify(selectedBD));
+   window.localStorage.setItem('nomadic-traveler:visited-countries',JSON.stringify(selectedWorld));
+  } catch { /* The map remains usable when storage is unavailable. */ }
+ },[selectedBD,selectedWorld]);
  const current=tab==='worldmap'?countries:districts;
  const selected=tab==='worldmap'?selectedWorld:selectedBD;
  const filtered=useMemo(()=>current.filter(x=>x.toLowerCase().includes(search.toLowerCase())),[current,search]);
