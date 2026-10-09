@@ -130,6 +130,41 @@ function RealDistrictMap({selected,onToggle}:{selected:string[],onToggle:(x:stri
   }).catch(()=>{if(alive)setError('মানচিত্রের data লোড হয়নি। নিচের তালিকা থেকে জেলা নির্বাচন করুন।')});
   return ()=>{alive=false};
  },[]);
+ const normalize=(s:string)=>s.normalize('NFKC').toLocaleLowerCase().replace(/district$/,'').replace(/[^\p{L}\p{N}]/gu,'');
+ const aliases:Record<string,string>={
+  chittagong:'চট্টগ্রাম',chattogram:'চট্টগ্রাম',comilla:'কুমিল্লা',cumilla:'কুমিল্লা',
+  coxsbazar:'কক্সবাজার',coxsbazaar:'কক্সবাজার',jessore:'যশোর',jashore:'যশোর',
+  barisal:'বরিশাল',barishal:'বরিশাল',bogra:'বগুড়া',bogura:'বগুড়া',
+  maulvibazar:'মৌলভীবাজার',moulvibazar:'মৌলভীবাজার',moulvibazaar:'মৌলভীবাজার',
+  brahmanbaria:'ব্রাহ্মণবাড়িয়া',chapainawabganj:'চাঁপাইনবাবগঞ্জ',nawabganj:'চাঁপাইনবাবগঞ্জ',
+  bandarban:'বান্দরবান',khagrachhari:'খাগড়াছড়ি',khagrachari:'খাগড়াছড়ি',
+  chittagonghilltracts:'রাঙ্গামাটি',rangamati:'রাঙ্গামাটি',sylhet:'সিলেট'
+ };
+ const resolveDistrict=(feature:any):string=>{
+  const props=feature?.properties||{};
+  const preferred=['NAME_2','ADM2_EN','DISTRICT','district','District','name','NAME_1','NAME','admin2Name','NAME_3'];
+  const candidates=[...preferred.map(k=>props[k]),...Object.values(props)].filter((v):v is string=>typeof v==='string'&&v.trim().length>0);
+  for(const value of candidates){
+   const raw=value.trim();
+   const normalized=normalize(raw);
+   const direct=districts.find(d=>d===raw);
+   if(direct)return direct;
+   const metaName=names[raw.toLowerCase()];
+   if(metaName){
+    const exact=districts.find(d=>d===metaName);
+    if(exact)return exact;
+    const metaNorm=normalize(metaName);
+    if(metaNorm){const match=districts.find(d=>normalize(d)===metaNorm);if(match)return match;}
+   }
+   const alias=aliases[normalized];
+   if(alias){const exact=districts.find(d=>d===alias);if(exact)return exact;const aliasNorm=normalize(alias);const match=districts.find(d=>normalize(d)===aliasNorm);if(match)return match;}
+   if(normalized){
+    const match=districts.find(d=>normalize(d)===normalized);
+    if(match)return match;
+   }
+  }
+  return '';
+ };
  const allPoints=(g:any):number[][]=>{if(g?.type==='Polygon')return g.coordinates.flat();if(g?.type==='MultiPolygon')return g.coordinates.flat(1).flat();return []};
  const pts=features.flatMap(f=>allPoints(f.geometry));
  const xs=pts.map(p=>p[0]).filter(Number.isFinite),ys=pts.map(p=>p[1]).filter(Number.isFinite);
@@ -137,9 +172,8 @@ function RealDistrictMap({selected,onToggle}:{selected:string[],onToggle:(x:stri
  const project=(p:number[])=>[((p[0]-minX)/(maxX-minX))*100,(1-(p[1]-minY)/(maxY-minY))*100];
  const ringPath=(ring:number[][])=>ring.map((p,i)=>{const [x,y]=project(p);return (i?'L':'M')+x.toFixed(3)+' '+y.toFixed(3)}).join(' ')+' Z';
  const geometryPath=(g:any)=>g?.type==='Polygon'?g.coordinates.map(ringPath).join(' '):g?.type==='MultiPolygon'?g.coordinates.map((poly:any)=>poly.map(ringPath).join(' ')).join(' '):'';
- const normalize=(s:string)=>s.trim().toLowerCase().replace(/district$/,'').replace(/[^a-z]/g,'');
  if(features.length){
-  return <div className="realMapWrap"><svg className="districtSvg" viewBox="0 0 100 100" role="img" aria-label="Bangladesh district map">{features.map((f,i)=>{const en=String(f.properties?.NAME_2||f.properties?.ADM2_EN||f.properties?.name||f.properties?.NAME_1||'');const bn=names[en.trim().toLowerCase()]||names[normalize(en)]||en;const district= districts.find(d=>d===bn)||districts.find(d=>normalize(d)===normalize(bn))||districts.find(d=>normalize(d)===normalize(en));const label=district||bn||('জেলা '+(i+1));const on=selected.includes(label);return <path key={en||i} d={geometryPath(f.geometry)} className={on?'districtShape visited':'districtShape'} onMouseEnter={()=>setHover(label)} onMouseLeave={()=>setHover('')} onClick={()=>district&&onToggle(district)}><title>{label}</title></path>})}</svg><div className="mapLegend"><span><i className="legendDot visitedDot"/> ঘোরা</span><span><i className="legendDot"/> বাকি</span>{hover&&<b>{hover}</b>}<small>Source: Bangladesh Agricultural Meteorological Information Service (BAMIS)</small></div></div>
+  return <div className="realMapWrap"><svg className="districtSvg" viewBox="0 0 100 100" role="img" aria-label="Bangladesh district map">{features.map((f,i)=>{const label=resolveDistrict(f);const featureName=String(f.properties?.NAME_2||f.properties?.ADM2_EN||f.properties?.DISTRICT||f.properties?.district||f.properties?.name||f.properties?.NAME_1||'জেলা '+(i+1));const on=!!label&&selected.includes(label);return <path key={featureName+'-'+i} d={geometryPath(f.geometry)} className={on?'districtShape visited':'districtShape'} onMouseEnter={()=>setHover(label||featureName)} onMouseLeave={()=>setHover('')} onClick={()=>{if(label)onToggle(label);else setHover(featureName+' — তালিকা থেকে জেলা নির্বাচন করুন')}}><title>{label||featureName}</title></path>})}</svg><div className="mapLegend"><span><i className="legendDot visitedDot"/> ঘোরা</span><span><i className="legendDot"/> বাকি</span>{hover&&<b>{hover}</b>}<small>Source: Bangladesh Agricultural Meteorological Information Service (BAMIS)</small></div></div>
  }
  return <div className="districtFallback"><div className="districtFallbackHead"><b>বাংলাদেশ · ৬৪ জেলা</b><span>{error||'মানচিত্রের geographic data লোড হচ্ছে…'}</span></div><div className="districtFallbackGrid">{districts.map(d=><button key={d} className={selected.includes(d)?'districtFallbackItem selected':'districtFallbackItem'} onClick={()=>onToggle(d)}>{selected.includes(d)?'✓ ':''}{d}</button>)}</div></div>
 }
