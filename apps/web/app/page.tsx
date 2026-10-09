@@ -53,7 +53,7 @@ export default function Home(){
    window.localStorage.setItem('nomadic-traveler:visited-countries',JSON.stringify(selectedWorld));
   } catch { /* The map remains usable when storage is unavailable. */ }
  },[selectedBD,selectedWorld]);
- const current=tab==='worldmap'?countries:districts;
+ const current=tab==='worldmap'?[...countries]:districts;
  const selected=tab==='worldmap'?selectedWorld:selectedBD;
  const filtered=useMemo(()=>current.filter(x=>x.toLowerCase().includes(search.toLowerCase())),[current,search]);
  const pct=Math.round(selected.length/current.length*100);
