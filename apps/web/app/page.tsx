@@ -132,13 +132,28 @@ function RealDistrictMap({selected,onToggle}:{selected:string[],onToggle:(x:stri
  },[]);
  const normalize=(s:string)=>s.normalize('NFKC').toLocaleLowerCase().replace(/district$/,'').replace(/[^\p{L}\p{N}]/gu,'');
  const aliases:Record<string,string>={
-  chittagong:'চট্টগ্রাম',chattogram:'চট্টগ্রাম',comilla:'কুমিল্লা',cumilla:'কুমিল্লা',
-  coxsbazar:'কক্সবাজার',coxsbazaar:'কক্সবাজার',jessore:'যশোর',jashore:'যশোর',
-  barisal:'বরিশাল',barishal:'বরিশাল',bogra:'বগুড়া',bogura:'বগুড়া',
-  maulvibazar:'মৌলভীবাজার',moulvibazar:'মৌলভীবাজার',moulvibazaar:'মৌলভীবাজার',
-  brahmanbaria:'ব্রাহ্মণবাড়িয়া',chapainawabganj:'চাঁপাইনবাবগঞ্জ',nawabganj:'চাঁপাইনবাবগঞ্জ',
-  bandarban:'বান্দরবান',khagrachhari:'খাগড়াছড়ি',khagrachari:'খাগড়াছড়ি',
-  chittagonghilltracts:'রাঙ্গামাটি',rangamati:'রাঙ্গামাটি',sylhet:'সিলেট'
+  // Official and commonly used English spellings from Bangladesh district GeoJSON sources.
+  dhaka:'ঢাকা',dacca:'ঢাকা',
+  faridpur:'ফরিদপুর',gazipur:'গাজীপুর',gopalganj:'গোপালগঞ্জ',kishoreganj:'কিশোরগঞ্জ',
+  madaripur:'মাদারীপুর',manikganj:'মানিকগঞ্জ',munshiganj:'মুন্সিগঞ্জ',munshigonj:'মুন্সিগঞ্জ',
+  narayanganj:'নারায়ণগঞ্জ',narsingdi:'নরসিংদী',rajbari:'রাজবাড়ী',shariatpur:'শরীয়তপুর',shariyatpur:'শরীয়তপুর',tangail:'টাঙ্গাইল',
+  chittagong:'চট্টগ্রাম',chattogram:'চট্টগ্রাম',bandarban:'বান্দরবান',brahmanbaria:'ব্রাহ্মণবাড়িয়া',
+  chandpur:'চাঁদপুর',comilla:'কুমিল্লা',cumilla:'কুমিল্লা',coxsbazar:'কক্সবাজার',coxs bazar:'কক্সবাজার',
+  coxsbazaar:'কক্সবাজার',feni:'ফেনী',khagrachhari:'খাগড়াছড়ি',khagrachari:'খাগড়াছড়ি',
+  lakshmipur:'লক্ষ্মীপুর',lakshmipur:'লক্ষ্মীপুর',laxmipur:'লক্ষ্মীপুর',noakhali:'নোয়াখালী',rangamati:'রাঙ্গামাটি',
+  barisal:'বরিশাল',barishal:'বরিশাল',barguna:'বরগুনা',bhola:'ভোলা',jhalokati:'ঝালকাঠি',jhalokathi:'ঝালকাঠি',
+  patuakhali:'পটুয়াখালী',patuakhali:'পটুয়াখালী',pirojpur:'পিরোজপুর',
+  khulna:'খুলনা',bagerhat:'বাগেরহাট',chuadanga:'চুয়াডাঙ্গা',jessore:'যশোর',jashore:'যশোর',
+  jhenaidah:'ঝিনাইদহ',kushtia:'কুষ্টিয়া',magura:'মাগুরা',meherpur:'মেহেরপুর',narail:'নড়াইল',satkhira:'সাতক্ষীরা',
+  mymensingh:'ময়মনসিংহ',jamalpur:'জামালপুর',netrokona:'নেত্রকোণা',netrakona:'নেত্রকোণা',sherpur:'শেরপুর',
+  rajshahi:'রাজশাহী',bogra:'বগুড়া',bogura:'বগুড়া',joypurhat:'জয়পুরহাট',jaipurhat:'জয়পুরহাট',
+  naogaon:'নওগাঁ',natore:'নাটোর',chapainawabganj:'চাঁপাইনবাবগঞ্জ',nawabganj:'চাঁপাইনবাবগঞ্জ',
+  pabna:'পাবনা',sirajganj:'সিরাজগঞ্জ',
+  rangpur:'রংপুর',dinajpur:'দিনাজপুর',gaibandha:'গাইবান্ধা',kurigram:'কুড়িগ্রাম',lalmonirhat:'লালমনিরহাট',
+  nilphamari:'নীলফামারী',panchagarh:'পঞ্চগড়',panchagar:'পঞ্চগড়',thakurgaon:'ঠাকুরগাঁও',
+  sylhet:'সিলেট',habiganj:'হবিগঞ্জ',hobiganj:'হবিগঞ্জ',maulvibazar:'মৌলভীবাজার',moulvibazar:'মৌলভীবাজার',
+  moulvibazaar:'মৌলভীবাজার',sunamganj:'সুনামগঞ্জ',
+  chittagonghilltracts:'রাঙ্গামাটি'
  };
  const resolveDistrict=(feature:any):string=>{
   const props=feature?.properties||{};
