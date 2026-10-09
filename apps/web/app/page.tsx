@@ -107,18 +107,42 @@ function Page({children}:{children:React.ReactNode}){return <main className="wra
 function MapPicker({items,selected,onToggle,onAll,onClear,onExport}:{items:string[],selected:string[],onToggle:(x:string)=>void,onAll:()=>void,onClear:()=>void,onExport:()=>void}){const [q,setQ]=useState('');const filtered=items.filter(x=>x.toLowerCase().includes(q.toLowerCase()));return <div className="mapCard"><div className="mapStats"><div><b>{selected.length}</b><span>ঘোরা</span></div><div><b>{Math.round(selected.length/items.length*100)}%</b><span>সম্পন্ন</span></div><div><b>{items.length}</b><span>মোট</span></div></div>{items===districts ? <RealDistrictMap selected={selected} onToggle={onToggle}/> : <div className="fakeMap">{items.slice(0,Math.min(items.length,80)).map((x,i)=><button key={x} style={{left:(i*37)%92+'%',top:(i*53)%82+'%'}} className={selected.includes(x)?'dot on':'dot'} title={x} onClick={()=>onToggle(x)}>•</button>)}</div>}<div className="mapToolbar"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="খুঁজুন…"/><button className="outline" onClick={onAll}>সব বাছাই</button><button className="outline" onClick={onClear}>সব মুছুন</button></div><div className="places">{filtered.map(x=><button key={x} className={selected.includes(x)?'place on':'place'} onClick={()=>onToggle(x)}>{selected.includes(x)?'✓ ':''}{x}</button>)}</div><div className="exports"><button className="primary" onClick={onExport}>↓ PNG</button><button className="outline" onClick={onExport}>↓ JPG</button><button className="outline" onClick={onExport}>↓ PDF</button></div></div>}
 
 function RealDistrictMap({selected,onToggle}:{selected:string[],onToggle:(x:string)=>void}){
- const [features,setFeatures]=useState<any[]>([]); const [names,setNames]=useState<Record<string,string>>({}); const [error,setError]=useState(''); const [hover,setHover]=useState('');
- useEffect(()=>{Promise.all([
-  fetch('https://www.bamis.gov.bd/res/public/map/bangladesh_district_bounds.json').then(r=>r.ok?r.json():Promise.reject(new Error('Map data unavailable'))),
-  fetch('https://raw.githubusercontent.com/ifahimreza/bangladesh-geojson/master/src/data/bd-districts.json').then(r=>r.ok?r.json():Promise.reject(new Error('District names unavailable')))
- ]).then(([geo,meta])=>{setFeatures(geo.features||[]);const map:Record<string,string>={};for(const d of meta.districts||[])map[d.name]=d.bn_name;setNames(map)}).catch(()=>setError('মানচিত্রের geographic data এখন লোড করা যাচ্ছে না।'))},[]);
- const allPoints=(g:any):number[][]=>{if(g.type==='Polygon')return g.coordinates.flat();if(g.type==='MultiPolygon')return g.coordinates.flat(1).flat();return []};
- const pts=features.flatMap(f=>allPoints(f.geometry)); const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]); const minX=Math.min(...xs,88),maxX=Math.max(...xs,93),minY=Math.min(...ys,20),maxY=Math.max(...ys,27); const pad=1.5;
- const project=(p:number[])=>{const x=((p[0]-minX)/(maxX-minX))*100;const y=(1-(p[1]-minY)/(maxY-minY))*100;return [x,y]};
+ const [features,setFeatures]=useState<any[]>([]);
+ const [names,setNames]=useState<Record<string,string>>({});
+ const [error,setError]=useState('');
+ const [hover,setHover]=useState('');
+ useEffect(()=>{
+  let alive=true;
+  const geoPromise=fetch('https://www.bamis.gov.bd/res/public/map/bangladesh_district_bounds.json').then(r=>{if(!r.ok)throw new Error('Map data unavailable');return r.json()});
+  const namesPromise=fetch('https://raw.githubusercontent.com/ifahimreza/bangladesh-geojson/master/src/data/bd-districts.json').then(r=>{if(!r.ok)throw new Error('District names unavailable');return r.json()});
+  Promise.allSettled([geoPromise,namesPromise]).then(results=>{
+   if(!alive)return;
+   const geoResult=results[0];
+   if(geoResult.status==='fulfilled'&&Array.isArray(geoResult.value.features)&&geoResult.value.features.length){
+    setFeatures(geoResult.value.features);
+    const metaResult=results[1];
+    if(metaResult.status==='fulfilled'){
+     const map:Record<string,string>={};
+     for(const d of metaResult.value.districts||[])map[String(d.name).trim().toLowerCase()]=d.bn_name;
+     setNames(map);
+    }
+   } else setError('জেলার boundary data লোড হয়নি। নিচের তালিকা থেকে জেলা নির্বাচন করতে পারবেন।');
+  }).catch(()=>{if(alive)setError('মানচিত্রের data লোড হয়নি। নিচের তালিকা থেকে জেলা নির্বাচন করুন।')});
+  return ()=>{alive=false};
+ },[]);
+ const allPoints=(g:any):number[][]=>{if(g?.type==='Polygon')return g.coordinates.flat();if(g?.type==='MultiPolygon')return g.coordinates.flat(1).flat();return []};
+ const pts=features.flatMap(f=>allPoints(f.geometry));
+ const xs=pts.map(p=>p[0]).filter(Number.isFinite),ys=pts.map(p=>p[1]).filter(Number.isFinite);
+ const minX=Math.min(...xs,88),maxX=Math.max(...xs,93),minY=Math.min(...ys,20),maxY=Math.max(...ys,27);
+ const project=(p:number[])=>[((p[0]-minX)/(maxX-minX))*100,(1-(p[1]-minY)/(maxY-minY))*100];
  const ringPath=(ring:number[][])=>ring.map((p,i)=>{const [x,y]=project(p);return (i?'L':'M')+x.toFixed(3)+' '+y.toFixed(3)}).join(' ')+' Z';
- const geometryPath=(g:any)=>g.type==='Polygon'?g.coordinates.map(ringPath).join(' '):g.coordinates.map((poly:any)=>poly.map(ringPath).join(' ')).join(' ');
- if(error)return <div className="realMapState">{error}</div>; if(!features.length)return <div className="realMapState">বাংলাদেশের ৬৪ জেলার আসল boundary map লোড হচ্ছে…</div>;
- return <div className="realMapWrap"><svg className="districtSvg" viewBox={`0 0 100 100`} role="img" aria-label="Bangladesh 64 district map">{features.map(f=>{const en=f.properties?.NAME_2||f.properties?.ADM2_EN||'';const bn=names[en]||en;const on=selected.includes(bn);return <path key={en} d={geometryPath(f.geometry)} className={on?'districtShape visited':'districtShape'} onMouseEnter={()=>setHover(bn)} onMouseLeave={()=>setHover('')} onClick={()=>onToggle(bn)}><title>{bn}</title></path>})}</svg><div className="mapLegend"><span><i className="legendDot visitedDot"/> ঘোরা</span><span><i className="legendDot"/> বাকি</span>{hover&&<b>{hover}</b>}<small>Source: Bangladesh Agricultural Meteorological Information Service (BAMIS)</small></div></div>}
+ const geometryPath=(g:any)=>g?.type==='Polygon'?g.coordinates.map(ringPath).join(' '):g?.type==='MultiPolygon'?g.coordinates.map((poly:any)=>poly.map(ringPath).join(' ')).join(' '):'';
+ const normalize=(s:string)=>s.trim().toLowerCase().replace(/district$/,'').replace(/[^a-z]/g,'');
+ if(features.length){
+  return <div className="realMapWrap"><svg className="districtSvg" viewBox="0 0 100 100" role="img" aria-label="Bangladesh district map">{features.map((f,i)=>{const en=String(f.properties?.NAME_2||f.properties?.ADM2_EN||f.properties?.name||f.properties?.NAME_1||'');const bn=names[en.trim().toLowerCase()]||names[normalize(en)]||en;const district= districts.find(d=>d===bn)||districts.find(d=>normalize(d)===normalize(bn))||districts.find(d=>normalize(d)===normalize(en));const label=district||bn||('জেলা '+(i+1));const on=selected.includes(label);return <path key={en||i} d={geometryPath(f.geometry)} className={on?'districtShape visited':'districtShape'} onMouseEnter={()=>setHover(label)} onMouseLeave={()=>setHover('')} onClick={()=>district&&onToggle(district)}><title>{label}</title></path>})}</svg><div className="mapLegend"><span><i className="legendDot visitedDot"/> ঘোরা</span><span><i className="legendDot"/> বাকি</span>{hover&&<b>{hover}</b>}<small>Source: Bangladesh Agricultural Meteorological Information Service (BAMIS)</small></div></div>
+ }
+ return <div className="districtFallback"><div className="districtFallbackHead"><b>বাংলাদেশ · ৬৪ জেলা</b><span>{error||'মানচিত্রের geographic data লোড হচ্ছে…'}</span></div><div className="districtFallbackGrid">{districts.map(d=><button key={d} className={selected.includes(d)?'districtFallbackItem selected':'districtFallbackItem'} onClick={()=>onToggle(d)}>{selected.includes(d)?'✓ ':''}{d}</button>)}</div></div>
+}
 
 function PlaceCard({p,onClick}:{p:typeof places[number],onClick:()=>void}){return <article className="placeCard"><div className="photo">{p.tag==='পাহাড়'?'🏔️':p.tag==='দ্বীপ'?'🏝️':p.tag==='বন'?'🌳':p.tag==='ঐতিহ্য'?'🏛️':'🌿'}</div><span>{p.tag}</span><h3>{p.title}</h3><small>{p.district} · {p.time} · আনুমানিক খরচ {p.cost}</small><p>{p.text}</p><button onClick={onClick}>ভ্রমণ প্ল্যান করুন →</button></article>}
 function Mini({icon,title,text,click}:{icon:string,title:string,text:string,click:()=>void}){return <button className="miniCard" onClick={click}><i>{icon}</i><b>{title}</b><p>{text}</p><span>আরও দেখুন →</span></button>}
