@@ -138,7 +138,7 @@ function RealDistrictMap({selected,onToggle}:{selected:string[],onToggle:(x:stri
   madaripur:'মাদারীপুর',manikganj:'মানিকগঞ্জ',munshiganj:'মুন্সিগঞ্জ',munshigonj:'মুন্সিগঞ্জ',
   narayanganj:'নারায়ণগঞ্জ',narsingdi:'নরসিংদী',rajbari:'রাজবাড়ী',shariatpur:'শরীয়তপুর',shariyatpur:'শরীয়তপুর',tangail:'টাঙ্গাইল',
   chittagong:'চট্টগ্রাম',chattogram:'চট্টগ্রাম',bandarban:'বান্দরবান',brahmanbaria:'ব্রাহ্মণবাড়িয়া',
-  chandpur:'চাঁদপুর',comilla:'কুমিল্লা',cumilla:'কুমিল্লা',coxsbazar:'কক্সবাজার',coxs bazar:'কক্সবাজার',
+  chandpur:'চাঁদপুর',comilla:'কুমিল্লা',cumilla:'কুমিল্লা',coxsbazar:'কক্সবাজার',
   coxsbazaar:'কক্সবাজার',feni:'ফেনী',khagrachhari:'খাগড়াছড়ি',khagrachari:'খাগড়াছড়ি',
   lakshmipur:'লক্ষ্মীপুর',lakshmipur:'লক্ষ্মীপুর',laxmipur:'লক্ষ্মীপুর',noakhali:'নোয়াখালী',rangamati:'রাঙ্গামাটি',
   barisal:'বরিশাল',barishal:'বরিশাল',barguna:'বরগুনা',bhola:'ভোলা',jhalokati:'ঝালকাঠি',jhalokathi:'ঝালকাঠি',
